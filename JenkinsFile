@@ -1,0 +1,29 @@
+pipeline {
+    agent any
+    stages {
+        stage('Checkout'){
+            steps{
+                echo 'Code Checkout, Pass git branch and url here'
+                git branch: 'main',
+                url: 'https://github.com/Siddharth505/PythonProgramming.git'
+            }
+        }
+        stage('Install Dependency'){
+            steps{
+                echo 'Install Dependencies'
+            }
+        }
+        stage('Run Tests'){
+            steps{
+                bat '''
+                for %%f in (BasicsPrograms\\*.py) do python "%%f"
+                '''
+            }
+        }
+        stage('Reports'){
+            steps{
+                echo 'Reporting'
+            }
+        }
+    }
+}
