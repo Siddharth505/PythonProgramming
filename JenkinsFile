@@ -1,29 +1,56 @@
+
 pipeline {
     agent any
+
     stages {
-        stage('Checkout'){
-            steps{
-                echo 'Code Checkout, Pass git branch and url here'
+        stage('Checkout') {
+            steps {
+                echo 'Checking out code from GitHub'
+
                 git branch: 'main',
-                url: 'https://github.com/Siddharth505/PythonProgramming.git'
+                    url: 'https://github.com/Siddharth505/PythonProgramming.git'
             }
         }
-        stage('Install Dependency'){
-            steps{
-                echo 'Install Dependencies'
-            }
-        }
-        stage('Run Tests'){
-            steps{
+
+        stage('Install Dependency') {
+            steps {
+                echo 'Installing Playwright and Pytest'
+
                 bat '''
-                for %%f in (BasicsPrograms\\*.py) do python "%%f"
+                    python -m pip install --upgrade pip
+                    python -m pip install pytest playwright pytest-html
+                    python -m playwright install chromium
                 '''
             }
         }
-        stage('Reports'){
-            steps{
-                echo 'Reporting'
+
+        stage('Run Tests') {
+            steps {
+                echo 'Executing Playwright Python Tests'
+
+                bat '''
+                    if not exist reports mkdir reports
+
+                    python -m pytest -v -s tests/ --junitxml=reports/junit.xml --html=reports/pytest-report.html --self-contained-html
+                '''
             }
+        }
+
+        stage('Reports') {
+            steps {
+                echo 'Test execution completed'
+                echo 'Reports are available in the reports folder'
+            }
+        }
+    }
+
+    post {
+        always {
+            junit testResults: 'reports/junit.xml',
+                  allowEmptyResults: true
+
+            archiveArtifacts artifacts: 'reports/**',
+                             allowEmptyArchive: true
         }
     }
 }
